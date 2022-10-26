@@ -285,15 +285,22 @@ export default {
         },
     }),
     methods: {
-        async onSubmit() {
-            await axios.post('/test', {
-                answer: this.answer,
-            }).then((_) => {
-                console.log("ok")
-            }).catch((error) => {
-                console.log(this.answer)
-                console.log(error)
-            })
+        onSubmit() {
+            // jsonファイルのデータを整える
+            const analyze = {};
+
+            for (let key of Object.keys(this.answer)) {
+                if (key == '2-importance') {
+                    for (data of this.answer) {
+                        const 2_key = key + data['id']
+                        analyze[2_key] = data['name']
+                    }
+                }
+                else {
+                    analyze[key] = this.answer[key]
+                }
+            }
+		    return(this.answer['18-long'], this.answer['30-satisfaction'])
         }
     }
 }
