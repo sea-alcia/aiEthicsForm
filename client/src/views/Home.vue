@@ -286,21 +286,225 @@ export default {
     }),
     methods: {
         onSubmit() {
-            // jsonファイルのデータを整える
-            const analyze = {};
+            let score_p, score_eat; // pが日常, eatが色に関するwell-being
 
+            // score_p, score_eatはそれぞれ21点, 31点満点(大西に文句を言ってくれ)
+            score_p = 0;
+            score_eat = 0;
             for (let key of Object.keys(this.answer)) {
-                if (key == '2-importance') {
-                    for (data of this.answer) {
-                        const 2_key = key + data['id']
-                        analyze[2_key] = data['name']
+                // 都会(1点) or 田舎(2点)
+                if (key == '9-urban') {
+                    if (this.answer[key] == '都会住み') {
+                        score_p += 1;
+                    }
+                    else {
+                        score_p += 2;
                     }
                 }
-                else {
-                    analyze[key] = this.answer[key]
+
+                // 恋人いる(1点)
+                if (key == '11-partner' & this.answer[key] == 'はい') {
+                    score_p += 1;
+                } 
+
+                // 困った時に相談相手がいる(1点)
+                if (key == '12-problem' & this.answer[key] == 'はい') {
+                    score_p += 1;
+                } 
+
+                // 課題のやるタイミングがすぐ(4点) or ギリギリ(2点) or 締切日前に適度に(1点)
+                if (key == '13-timing') {
+                    if (this.answer[key] == '出来るタイミングですぐに') {
+                        score_p += 4;
+                    }
+                    else if (this.answer[key] == 'ギリギリ') {
+                        score_p += 2;
+                    }
+                    else if (this.answer[key] == '締切日前に適度に') {
+                        score_p += 1;
+                    }
+                }
+
+                // どれだけ趣味にお金を使うかが15000以下(1点) or 5万まで(2点) or 10万まで(3点)
+                if (key == '15-amusement') {
+                    if (this.answer[key] <= 15000) {
+                        score_p += 1;
+                    }
+                    else if (this.answer[key] > 15000 & this.answer[key] <= 50000) {
+                        score_p += 2;
+                    }
+                    else if (this.answer[key] > 50000 & this.answer[key] <= 100000) {
+                        score_p += 3;
+                    }
+                }
+
+                // 一人暮らし(1点)
+                if (key == '16-living' & this.answer[key] == '1人暮らし') {
+                    score_p += 1;
+                }
+
+                // 労働の重要度の低さ(低いほど得点)
+                // 自由度が4位以外(1点)
+                if (key == '2-importance') {
+                    for (var data of this.answer[key]) {
+                        if (data['name'] == '労働勉強時間') {
+                            score_p += data['id'];
+                        }
+                        if (data['id'] == 3 & data['name'] != '自由時間') {
+                            score_p += 1;
+                        }
+                    }
+                }
+
+                // 睡眠時間が過剰(1点)
+                if (key == '3-sleep' & this.answer[key] == '過剰') {
+                    score_p += 1;
+                }
+
+                // 通勤時間が過剰(1点) or 適切(2点)
+                if (key == '4-commuting') {
+                    if (this.answer[key] == '過剰') {
+                        score_p += 1;
+                    }
+                    else if (this.answer[key] == '適切') {
+                        score_p += 2;
+                    }
+                }
+
+                // 労働時間が不足(1点) or 適切(2点)
+                if (key == '5-study') {
+                    if (this.answer[key] == '不足') {
+                        score_p += 1;
+                    }
+                    else if (this.answer[key] == '適切') {
+                        score_p += 2;
+                    }
+                }
+
+                // 食事回数が3~4回(2点)
+                if (key == '14-meal' & this.answer[key] >= 3 & this.answer[key] <= 4) {
+                    score_eat += 2;
+                }
+
+                // 朝ご飯がコンビニ(3点) or 手作り(2点)
+                if (key == '19-morning') {
+                    if (this.answer[key] == 'コンビニ飯') {
+                        score_eat += 3;
+                    }
+                    if (this.answer[key] == '手作り') {
+                        score_eat += 2;
+                    }
+                }
+
+                // お昼ご飯(省略)
+                if (key == '20-day') {
+                    if (this.answer[key] == 'コンビニ飯' || this.answer[key] == '手作り') {
+                        score_eat += 3;
+                    }
+                    else if (this.answer[key] == 'お惣菜' || this.answer[key] == 'ファストフード店') {
+                        score_eat += 5;
+                    }
+                    else if (this.answer[key] == '飲食店') {
+                        score_eat += 2;
+                    }
+                }
+
+                // 夜ご飯(省略)
+                if (key == '21-night') {
+                    if (this.answer[key] == '飲食店' || this.answer[key] == '手作り') {
+                        score_eat += 2;
+                    }
+                    else if (this.answer[key] == 'コンビニ飯') {
+                        score_eat += 1;
+                    }
+                    else if (this.answer[key] == 'お惣菜') {
+                        score_eat += 4;
+                    }
+                    else if (this.answer[key] == '居酒屋') {
+                        score_eat += 3;
+                    }
+                }
+
+                // カロリー意識
+                if (key == '22-calorie') {
+                    if (this.answer[key] == 'あまり意識していない') {
+                        score_eat += 1;
+                    }
+                    else if (this.answer[key] == '意識している') {
+                        score_eat += 2;
+                    }
+                }
+
+                // 健康
+                if (key == '23-health') {
+                    if (this.answer[key] == '意識していない') {
+                        score_eat += 3;
+                    }
+                    else if (this.answer[key] == 'できるときに意識している') {
+                        score_eat += 2;
+                    }
+                    else if (this.answer[key] == '意識している') {
+                        score_eat += 1;
+                    }
+                }
+
+                // 日常での飲み物
+                if (key == '25-everyday') {
+                    if (this.answer[key] == 'お茶') {
+                        score_eat += 3;
+                    }
+                    else if (this.answer[key] == '水') {
+                        score_eat += 2;
+                    }
+                    else if (this.answer[key] == 'その他清涼飲料水' || this.answer[key] == '炭酸') {
+                        score_eat += 1;
+                    }
+                }
+
+                // 食事での飲み物
+                if (key == '26-eating') {
+                    if (this.answer[key] == 'お茶') {
+                        score_eat += 1;
+                    }
+                    else if (this.answer[key] == '水') {
+                        score_eat += 2;
+                    }
+                }
+
+                // 食での幸せ
+                if (key == '28-happy') {
+                    if (this.answer[key] == 'あまり感じない') {
+                        score_eat += 1;
+                    }
+                    else if (this.answer[key] == 'とても感じる' || this.answer[key] == '感じる') {
+                        score_eat += 2;
+                    }
+                }
+
+                // 食の重要度
+                if (key == '29-importance') {
+                    if (this.answer[key] == 1) {
+                        score_eat += 3;
+                    }
+                    else if (this.answer[key] == 2) {
+                        score_eat += 2;
+                    }
+                }
+
+                // 食の満足度
+                if (key == '30-satisfaction') {
+                    if (this.answer[key] == 2) {
+                        score_eat += 1;
+                    }
+                    else if (this.answer[key] >= 3) {
+                        score_eat += 2;
+                    }
                 }
             }
-		    return(this.answer['18-long'], this.answer['30-satisfaction'])
+
+            console.log(score_p)
+            console.log(score_eat)
+            alart(score_p, score_eat);
         }
     }
 }
